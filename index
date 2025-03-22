@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <base target="_top">
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        margin: 20px;
+        padding: 20px;
+        text-align: center;
+        background-color: #f4f4f4;
+      }
+      h2, h3 {
+        color: #b22222; /* Títulos en rojo */
+      }
+      #header {
+        font-size: 18px;
+        margin-bottom: 20px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        flex-direction: column;
+        line-height: 1.0; /* Interlineado muy ajustado */
+      }
+      #header h1 {
+        font-size: 28px;
+        font-weight: bold;
+        color: #b22222; /* Color institucional rojo */
+        margin: 10px 0;
+      }
+      #header p {
+        font-size: 16px;
+        color: black;
+        font-weight: bold; /* Todo el membrete en negrita */
+        margin: 0; /* Sin espacio adicional entre párrafos */
+      }
+      #header .motto {
+        font-size: 18px;
+        color: #333;
+        margin-top: 5px;
+        font-weight: bold; /* Lema también en negrita */
+      }
+      #header img {
+        width: 80px;
+        height: auto;
+        display: block;
+        margin-bottom: 10px;
+      }
+      #resultado {
+        margin-top: 20px;
+        padding: 10px;
+        background-color: #fff;
+        border-radius: 5px;
+        border: 1px solid #ccc;
+      }
+      .section {
+        margin-bottom: 20px;
+      }
+      .notes-table {
+        width: 80%;
+        border-collapse: collapse;
+        margin: 0 auto;
+      }
+      .notes-table th, .notes-table td {
+        padding: 8px 12px;
+        border: 1px solid #ccc;
+        text-align: center;
+      }
+      .footer {
+        margin-top: 40px;
+        font-size: 14px;
+        color: #888;
+      }
+
+      /* Configuración para la impresión */
+      @media print {
+        body {
+          width: 100%;
+          font-size: 12px; /* Reducir el tamaño de fuente para que todo quepa en una página */
+          padding: 0;
+          margin: 0;
+        }
+
+        #resultado {
+          width: 100%;
+          font-size: 12px;
+          padding: 0;
+        }
+
+        /* Ajustes específicos para tamaño carta con márgenes reducidos */
+        @page {
+          size: letter;
+          margin-top: 10mm; /* Márgenes superiores reducidos */
+          margin-bottom: 10mm; /* Márgenes inferiores reducidos */
+          margin-left: 15mm; /* Márgenes laterales reducidos */
+          margin-right: 15mm; /* Márgenes laterales reducidos */
+        }
+
+        /* Asegurarse de que no haya escala que cause que el contenido sea más grande de lo que cabe */
+        html, body {
+          transform: none; /* Eliminar la escala */
+          width: 100%;
+          height: 100%;
+        }
+
+        /* Opcionalmente, ajustar márgenes si es necesario */
+        .section {
+          margin-bottom: 10px;
+        }
+
+        .footer {
+          margin-top: 20px;
+        }
+
+        /* Ajustar tamaño de las tablas para caber en una sola página */
+        .activity-table, .notes-table {
+          width: 100%;
+        }
+
+        .activity-table th, .activity-table td,
+        .notes-table th, .notes-table td {
+          padding: 6px; /* Reducir el padding de las celdas */
+        }
+
+        /* Ocultar el botón de impresión durante la impresión */
+        button {
+          display: none;
+        }
+      }
+
+      .activity-table {
+        width: 80%;
+        margin: 0 auto;
+        border-collapse: collapse;
+        text-align: left;
+      }
+
+      .activity-table th, .activity-table td {
+        padding: 12px;
+        border: 1px solid #ccc;
+      }
+
+      .activity-table th {
+        background-color: #f2f2f2;
+        text-align: center;
+      }
+
+      .description-cell {
+        width: 400px;
+        text-align: justify; /* Justificar texto de descripción */
+      }
+
+      .activity-cell, .note-cell {
+        width: 100px; /* Reducir el ancho de la columna de actividad y nota */
+        text-align: center; /* Centrar texto */
+      }
+
+    </style>
+  </head>
+  <body>
+    <div id="header">
+      <!-- Logo y membrete -->
+      <img src="https://www.micole.net/imagenes/colegio/logo/700007153/maria-reina-del-carmelo_512.png" alt="Logo Colegio">
+      <h1>Colegio Maria Reina Del Carmelo</h1>
+      <p>"Para La Gloria De Dios, Mi Casa, Mi Corazón Y Mi Vida"</p>
+      <p>Profesor Abrahan Guerra Giordani</p>
+      <p>Docente de Matemáticas 7º y 8º y Física 9º, 10º y 11º</p>
+      <h2>CMRC 2025 - NOTAS</h2>
+    </div>
+    
+    <h3>Consulta de NOTAS del Estudiante</h3>
+    
+    <form id="form">
+      <label for="documento">Número de Documento:</label>
+      <input type="text" id="documento" name="documento" placeholder="Ingresa el documento" required>
+      <input type="button" value="Buscar" onclick="buscarEstudiante()">
+    </form>
+    
+    <div id="resultado"></div>
+
+    <script>
+      function buscarEstudiante() {
+        var documento = document.getElementById('documento').value;
+
+        // Llama a la función Apps Script para obtener los datos
+        google.script.run.withSuccessHandler(function(result) {
+          if (typeof result === 'string') {
+            // Si el resultado es un string, es un mensaje de error
+            document.getElementById('resultado').innerHTML = `<p style="color: red;">${result}</p>`;
+          } else {
+            // Si se encuentran los datos, muestra los resultados
+            var htmlContent = `
+              <p><strong>Documento:</strong> ${result.documento}</p>
+              <p><strong>Estudiante:</strong> ${result.estudiante}</p>
+              <p><strong>Asignatura:</strong> ${result.asignatura}</p>
+
+              <div class="section">
+                <h3>TRABAJO EN CLASES (50%)</h3>
+                <table class="activity-table">
+                  <thead>
+                    <tr>
+                      <th class="activity-cell">ACTIVIDADES</th>
+                      <th class="note-cell">NOTA</th>
+                      <th class="description-cell">DESCRIPCIÓN</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td class="activity-cell">ACTIVIDAD 1</td>
+                      <td class="note-cell">${result.C1}</td>
+                      <td class="description-cell">${result.DC1}</td>
+                    </tr>
+                    <tr>
+                      <td class="activity-cell">ACTIVIDAD 2</td>
+                      <td class="note-cell">${result.C2}</td>
+                      <td class="description-cell">${result.DC2}</td>
+                    </tr>
+                    <tr>
+                      <td class="activity-cell">ACTIVIDAD 3</td>
+                      <td class="note-cell">${result.C3}</td>
+                      <td class="description-cell">${result.DC3}</td>
+                    </tr>
+                    <tr>
+                      <td class="activity-cell">ACTIVIDAD 4</td>
+                      <td class="note-cell">${result.C4}</td>
+                      <td class="description-cell">${result.DC4}</td>
+                    </tr>
+                    <tr>
+                      <td class="activity-cell">ACTIVIDAD 5</td>
+                      <td class="note-cell">${result.C5}</td>
+                      <td class="description-cell">${result.DC5}</td>
+                    </tr>
+                    <tr>
+                      <td class="activity-cell">ACTIVIDAD 6</td>
+                      <td class="note-cell">${result.C6}</td>
+                      <td class="description-cell">${result.DC6}</td>
+                    </tr>
+                    <tr>
+                      <td class="activity-cell">ACTIVIDAD 7</td>
+                      <td class="note-cell">${result.C7}</td>
+                      <td class="description-cell">${result.DC7}</td>
+                    </tr>
+                    <tr>
+                      <td class="activity-cell">PUNTOS EXTRAS</td>
+                      <td class="note-cell">${result.C8}</td>
+                      <td class="description-cell">${result.DC8}</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+
+              <div class="section">
+                <h3>TAREAS (15%)</h3>
+                <table class="activity-table">
+                  <thead>
+                    <tr>
+                      <th class="activity-cell">TAREAS</th>
+                      <th class="note-cell">NOTA</th>
+                      <th class="description-cell">DESCRIPCIÓN</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td class="activity-cell">TAREA 1</td>
+                      <td class="note-cell">${result.T1}</td>
+                      <td class="description-cell">${result.DT1}</td>
+                    </tr>
+                    <tr>
+                      <td class="activity-cell">TAREA 2</td>
+                      <td class="note-cell">${result.T2}</td>
+                      <td class="description-cell">${result.DT2}</td>
+                    </tr>
+                    <tr>
+                      <td class="activity-cell">TAREA 3</td>
+                      <td class="note-cell">${result.T3}</td>
+                      <td class="description-cell">${result.DT3}</td>
+                      <tr>
+                      <td class="activity-cell">TAREA 4</td>
+                      <td class="note-cell">${result.T4}</td>
+                      <td class="description-cell">${result.DT4}</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+
+              <div class="section">
+                <h3>QUIZZES (15%)</h3>
+                <table class="activity-table">
+                  <thead>
+                    <tr>
+                      <th class="activity-cell">QUIZZES</th>
+                      <th class="note-cell">NOTA</th>
+                      <th class="description-cell">DESCRIPCIÓN</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td class="activity-cell">QUIZ 1</td>
+                      <td class="note-cell">${result.Q1}</td>
+                      <td class="description-cell">${result.DQ1}</td>
+                    </tr>
+                    <tr>
+                      <td class="activity-cell">QUIZ 2</td>
+                      <td class="note-cell">${result.Q2}</td>
+                      <td class="description-cell">${result.DQ2}</td>
+                    </tr>
+                    <tr>
+                      <td class="activity-cell">QUIZ 3</td>
+                      <td class="note-cell">${result.Q3}</td>
+                      <td class="description-cell">${result.DQ3}</td>
+                    </tr>
+                    <tr>
+                      <td class="activity-cell">QUIZ 4</td>
+                      <td class="note-cell">${result.Q4}</td>
+                      <td class="description-cell">${result.DQ4}</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+
+              <div class="section">
+                <h3>EXAMEN BIMESTRAL (20%)</h3>
+                <table class="activity-table">
+                  <thead>
+                    <tr>
+                      <th class="activity-cell">EXAMEN</th>
+                      <th class="note-cell">NOTA</th>
+                      <th class="description-cell">DESCRIPCIÓN</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td class="activity-cell">EXAMEN BIMESTRAL</td>
+                      <td class="note-cell">${result.B}</td>
+                      <td class="description-cell">${result.DB}</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+
+              <div class="section">
+                <h3>NOTA FINAL</h3>${result.FINAL}</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+
+              <button onclick="printPage()">Imprimir</button>
+            `;
+            document.getElementById('resultado').innerHTML = htmlContent;
+          }
+        }).consultarEstudiante(documento);
+      }
+
+      function printPage() {
+        window.print();
+      }
+    </script>
+
+    <footer class="footer">
+      <p>Sistema creado por el Ingeniero Abrahan Guerra Giordani</p>
+    </footer>
+  </body>
